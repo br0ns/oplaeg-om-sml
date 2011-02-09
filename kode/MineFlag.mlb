@@ -1,0 +1,10 @@
+$(SML_LIB)/basis/basis.mlb
+
+persondatabase/ORDNING.sig
+persondatabase/ORDNET_MAENGDE.sig persondatabase/OrdnetMaengdeFn.sml
+
+TekstMaengde.sml
+
+FLAG.sig FlagFn.sml
+
+MineFlag.sml
