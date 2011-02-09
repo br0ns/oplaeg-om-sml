@@ -1,0 +1,12 @@
+$(SML_LIB)/basis/basis.mlb
+
+ORDNING.sig
+ORDNET_MAENGDE.sig OrdnetMaengdeFn.sml
+ORDNET_OPSLAG.sig OrdnetOpslagFn.sml
+
+PERSON.sig Person.sml
+
+PersonMaengde.sml
+PersonOpslag.sml
+
+MY_FACE_TUBE.sig MyFaceTube.sml

@@ -1,0 +1,1 @@
+structure PersonMaengde = OrdnetMaengdeFn (Person)

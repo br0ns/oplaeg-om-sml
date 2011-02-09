@@ -1,0 +1,649 @@
+% xcolor=table is because it seems that beamer uses the xcolor package in a
+% strange way and thus don't accept us giving arguments to the package.
+\documentclass[slidestop,compress,mathserif, xcolor=table]{beamer}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[danish]{babel}
+
+\newcommand{\mft}{\textbf{MyFaceTube$^{\scriptsize{\textcopyright}}$}}
+
+% \usepackage{mdwtab}
+% \usepackage{mathenv}
+% \usepackage{amsfonts}
+% \usepackage{amsmath}
+% \usepackage{amssymb}
+% \usepackage{amsthm}
+
+\usepackage{ulem}
+\usepackage{semantic}
+\renewcommand{\ttdefault}{txtt} % Bedre typewriter font
+
+% Use the NAT theme in uk (also possible in DK)
+\usetheme[nat,dk, footstyle=low]{Frederiksberg}
+
+\setbeamercovered{invisible}
+% possible to shift back, so they are just invisible untill they should overlay
+% \setbeamercovered{invisible}
+
+% Extend figures into either left or right margin
+% Ex: \begin{narrow}{-1in}{0in} .. \end{narrow} will place 1in into left margin
+\newenvironment{narrow}[2]{%
+  \begin{list}{}{%
+  \setlength{\topsep}{0pt}%
+  \setlength{\leftmargin}{#1}%
+  \setlength{\rightmargin}{#2}%
+  \setlength{\listparindent}{\parindent}%
+  \setlength{\itemindent}{\parindent}%
+  \setlength{\parsep}{\parskip}}%
+\item[]}{\end{list}}
+
+\usepackage[final]{listings}
+\lstset{ %
+language=ml,                % choose the language of the code
+basicstyle=\ttfamily\tiny,        % the size of the fonts that are used for the code
+basewidth=0.5em,
+numbers=left,                   % where to put the line-numbers
+numberstyle=\tiny,      % the size of the fonts that are used for the line-numbers
+% stepnumber=2,                   % the step between two line-numbers. If it's 1 each line will be numbered
+% numbersep=5pt,                  % how far the line-numbers are from the code
+% backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+% showspaces=false,               % show spaces adding particular underscores
+% showstringspaces=false,         % underline spaces within strings
+% showtabs=false,                 % show tabs within strings adding particular underscores
+% frame=single	                % adds a frame around the code
+% tabsize=2,	                % sets default tabsize to 2 spaces
+% captionpos=b,                   % sets the caption-position to bottom
+% breaklines=true,                % sets automatic line breaking
+% breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+escapeinside={(@}{@)}          % if you want to add a comment within your code
+}
+
+\lstnewenvironment{sml}
+{\lstset{xleftmargin=1em}} % starting code, ex a lstset that is more specific;
+{} % ending code
+
+
+\usepackage{tikz}
+\usetikzlibrary{calc,shapes,arrows}
+% below is for use of backgrounds (foregrounds are not used so they are not
+% added to this specification).
+\pgfdeclarelayer{background}
+\pgfsetlayers{background,main}
+
+
+\usepackage{subfigure}
+
+
+% Write a short text to have that shown in the footer of slides other than the
+% title slide.
+\title[]{Brug SML til jeres systemudviklingsprojekt}
+% A possible subslide.
+\subtitle{Om at skrive større programmer med SML}
+
+
+\author[Morten Brøns-Pedersen]
+       {Morten Brøns-Pedersen}
+
+% Only write DIKU in the footer of slides (except the title slide).
+\institute[DIKU]{Datalogisk institut}
+
+% Remove the date stamp from the footer of slides (except title slide) by giving
+% it no short "text"
+\date[]{10. februar 2011}
+
+\begin{document}
+
+\frame[plain]{\titlepage}
+
+\begin{frame}
+  \frametitle{Program}
+
+  \begin{itemize}
+  \item Introduktion (med eksempel).
+  \item Kort om systemdesign.
+  \item SML's modulsystem.
+  \item Et par eksempler.
+  \item Det \sout{kedelige} praktiske.
+  \item Afrunding.
+  \end{itemize}\vfill
+
+  \textit{Diaser og kode kan findes på \url{http://github.com/mortenbp}.}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Introduktion}
+
+  På kurset Introduktion på Programmering har I lært SML at kende. Men de
+  problemer I har løst har været små og veldefinerede.\\[1em]
+
+  Målet for i dag er at gøre jer i stand til
+  \begin{block}{}
+    \center At strukturere, og udvikle, et større program med SML.
+  \end{block}\ \\
+
+  Vi starter med et eksempel.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Eksempel: Persondatabase \quad (1/13)}
+
+  Designovervejelser
+  \begin{itemize}
+  \item Hvad skal den kunne? Vi kan f.eks. lave hurtigt opslag af personer på
+    navn eller CPR-nummer, men ikke umiddelbart begge.
+  \item Hvor generisk skal databasen være? Er det bare et tilfælde af en mængde
+    eller en afbildning, eller skal den være mere specialiseret?
+  \item Hvad er formålet med databasen? Formålet skal afspejles i designet; \textit{godt
+      design kendes på hvad der er udeladt.}
+  \item Skal det være muligt at arbejde med flere databaser, eller findes der
+    kun én enkelt?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Eksempel: Persondatabase \quad (2/13)}
+
+  \begin{block}{\mft}
+    En database som holder styr på venskaber mellem personer. Venskaber er ikke
+    nødvendigvis gensidige.
+    \center Der findes kun én \mft!
+  \end{block}
+
+  \mft er \textit{ikke}
+  \begin{itemize}
+  \item En telefonbog.
+  \item Et stamtræ.
+  \item Et fotoalbum.
+  \item ...
+  \end{itemize}
+
+  Ekstra funktionalitet kan implementeres som en ny database eller direkte i
+  \mft. Endnu et valg at træffe!
+\end{frame}
+
+\begin{frame}
+  \frametitle{Eksempel: Persondatabase \quad (3/13)}
+
+  Hvilke beregninger og hvilke objekter består \mft af?
+
+  \begin{itemize}
+  \item Personer.
+  \item Mængder (af personer)
+  \item Opslag (fra personer til mængder af personer) --- Hvem er dine venner?
+  \item Selve \mft.
+  \end{itemize}
+
+  Vi starter med signaturerne.
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Eksempel: Persondatabase \quad (4/13)}
+  \begin{block}{}
+    \lstinputlisting{kode/persondatabase/ORDNING.sig}
+  \end{block}
+  Husk at \texttt{order} er defineret i standardbiblioteket:
+  \begin{block}{}
+    \lstinputlisting[numbers=none]{kode/til-slides/order.sml}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Eksempel: Persondatabase \quad (5/13)}
+  \begin{block}{}
+    \lstinputlisting{kode/persondatabase/PERSON.sig}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Eksempel: Persondatabase \quad (6/13)}
+  \begin{block}{}
+    \lstinputlisting{kode/persondatabase/ORDNET_MAENGDE.sig}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Eksempel: Persondatabase \quad (7/13)}
+  \begin{block}{}
+    \lstinputlisting{kode/persondatabase/ORDNET_OPSLAG.sig}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Eksempel: Persondatabase \quad (8/13)}
+  \begin{block}{}
+    \lstinputlisting{kode/persondatabase/MY_FACE_TUBE.sig}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Eksempel: Persondatabase \quad (9/13)}
+  Vi gennemgår ikke hele implementeringen her. Koden kan findes online på
+  \url{http://github.com/mortenbp}.
+
+  \begin{block}{}
+    \lstinputlisting{kode/persondatabase/Person.sml}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Eksempel: Persondatabase \quad (10/13)}
+  \begin{block}{}
+    \lstinputlisting[lastline=15]{kode/persondatabase/OrdnetMaengdeFn.sml}
+  \end{block}
+  \begin{block}{}
+    \lstinputlisting[numbers=none]{kode/persondatabase/PersonMaengde.sml}
+  \end{block}
+  \begin{block}{}
+    \lstinputlisting[numbers=none]{kode/persondatabase/PersonOpslag.sml}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Eksempel: Persondatabase \quad (11/13)}
+  One of a kind? --- Imperativ programmering med SML.
+  \begin{block}{}
+    \lstinputlisting[lastline=19]{kode/persondatabase/MyFaceTube.sml}
+  \end{block}
+\end{frame}
+
+\begin{frame}[c]
+  \frametitle{Eksempel: Persondatabase \quad (12/13)}
+  \begin{center}
+    \Huge{Live demo.}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Eksempel: Persondatabase \quad (13/13)}
+
+  Alternativ løsning: Lad personer holde styr på deres egne venskaber.
+
+  \begin{description}
+  \item[Pro] \mft bliver essentielt blot en mængde af personer --- vi behøver
+    ikke implementere opslag.
+  \item[Contra] Vores \texttt{Person.t} bliver mindre generel --- i mange
+    situationer er det uinteressant at vide hvem der er venner med hvem.
+  \end{description}
+
+  \uncover<2->{
+  \begin{block}{}
+    \lstinputlisting[firstline=1,lastline=1,numbers=none]
+    {kode/til-slides/persontyper.sml}
+  \end{block}
+}
+  \uncover<3->{
+    \begin{block}{}
+      \lstinputlisting[firstline=2,lastline=2,numbers=none]
+      {kode/til-slides/persontyper.sml}
+    \end{block}
+  }
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kort om systemdesign}
+  Tommelfingerregel:
+  \begin{block}{}
+    Des mindre to dele af systemet har med hinanden at gøre, des mindre bør de
+    vide om hinanden.
+  \end{block}
+  \begin{itemize}
+  \item Opdel systemet i beregning og repræsentation. Det er især vigtigt i
+    funktionel programmering.
+  \item Konventioner omkring repræsentation og invarianter er OK inden for
+    strukturer, \textit{ikke} mellem dem.
+  \item Undgå så vidt muligt at gøre (data)typer synlige for det omgivende
+    program (brug \texttt{:>}). Lav i stedet en struktur som modellerer
+    objektet.
+  \item Brug de objekter der passer! Altså; ingen lister hvor der burde være
+    mængder.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{SML's modulsystem \quad (1/3)}
+
+  Signaturer som dokumentation. Eksempel fra MyLib:
+  \begin{block}{}
+    \lstinputlisting[firstline=10,lastline=33]
+    {kode/til-slides/Layout.sig}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{SML's modulsystem \quad (2/3)}
+  Brug en enkelt struktur for hvert objekt der skal repræsenteres.
+
+  \begin{block}{}
+    \center Objektets type er \texttt{Objekt.t}.
+  \end{block}\ \\
+
+  \textbf{OBS:} Strider med standardbibliotekets konvention som er
+  \texttt{Objekt.objekt}.
+\end{frame}
+
+\begin{frame}
+  \frametitle{SML's modulsystem \quad (3/3)}
+  Udvidelse af strukturer.
+  \begin{itemize}
+  \item Signaturer kan inkludere andre signaturer med \texttt{include}.
+    \begin{block}{}
+    \lstinputlisting[firstline=1,lastline=5]
+    {kode/til-slides/List.sig}
+    \end{block}
+  \item Strukturer kan inkludere andre strukturer med \texttt{open}.
+    \begin{block}{}
+    \lstinputlisting[firstline=1,lastline=3]
+    {kode/til-slides/List.sml}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Et par eksempler}
+  \begin{itemize}
+  \item Når \texttt{option} ikke er god nok: \texttt{Either.t}.
+  \item Modellering af klasser med funktorer: \texttt{FlagFn}.
+  \item Gratis funktioner med funktorer: \texttt{FoldbarFn}.
+  \item Doven evaluering med memoisering: \texttt{Lazy.t}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Et par eksempler: \texttt{Either.t}}
+
+  \begin{block}{}
+    \lstinputlisting{/home/morten/kode/sml/mylib/Other/Either.sig}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Et par eksempler: \texttt{Either.t}}
+
+  \begin{block}{}
+    \lstinputlisting{/home/morten/kode/sml/mylib/Other/Either.sml}
+  \end{block}
+  \begin{block}{}
+    \lstinputlisting[firstline=30,lastline=31]
+    {/home/morten/kode/sml/mylib/TopLevel.sml}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Et par eksempler: \texttt{FlagFn}}
+  \textbf{FARE!} Imperativ programmering.
+
+  \begin{block}{}
+    \lstinputlisting{kode/FLAG.sig}
+  \end{block}
+  \begin{block}{}
+    \lstinputlisting{kode/FlagFn.sml}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Et par eksempler: \texttt{FlagFn}}
+  \textbf{FARE!} Imperativ programmering.
+
+  \begin{block}{}
+    \lstinputlisting{kode/MineFlag.sml}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Et par eksempler: \texttt{FoldbarFn}}
+
+  \begin{block}{}
+    \lstinputlisting{kode/FOLDBAR.sig}
+  \end{block}
+  \begin{block}{}
+    \lstinputlisting{kode/FoldbarFn.sml}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Et par eksempler: \texttt{FoldbarFn}}
+
+  Mange ting er \texttt{FOLBAR}e:
+  \begin{itemize}
+  \item Opslag.
+  \item Træer.
+  \item Lister.
+  \item Grafer.
+  \item Filer.
+  \item ...
+  \end{itemize}
+  De seks funktioner er nu "`gratis"' for hver slags objekt.
+
+  \begin{block}{}
+    \lstinputlisting{kode/til-slides/foldbareksempel.sml}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Et par eksempler: \texttt{Lazy.t}}
+
+  \begin{block}{}
+    \lstinputlisting{kode/til-slides/Lazy.sig}
+  \end{block}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Et par eksempler: \texttt{Lazy.t}}
+
+  \begin{block}{}
+    \lstinputlisting{kode/til-slides/Lazy.sml}
+  \end{block}
+\end{frame}
+
+\begin{frame}[c]
+  \frametitle{Det praktiske}
+  \begin{itemize}
+  \item Oversættere.
+  \item Projektfiler.
+  \item Biblioteker.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Det praktiske: Oversættere \quad (1/4)}
+  \textbf{Moscow ML} {\scriptsize(\url{http://www.itu.dk/~sestoft/mosml.html})}
+  \begin{itemize}
+  \item Har I arbejdet med før.
+  \item Har en interaktiv fortolker.
+  \item Egner sig ikke så godt til programmer som fordeler sig over flere
+    filer.
+  \item Implementerer ikke hele standardbiblioteket.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Det praktiske: Oversættere \quad (2/4)}
+  \textbf{SML of New Jersey} {\scriptsize(\url{http://www.smlnj.org})}
+  \begin{itemize}
+  \item Har en interaktiv fortolker.
+  \item Er godt dokumenteret.
+  \item Understøtter projektfiler (CM).
+  \item Har adskillige ekstrabiblioteker.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Det praktiske: Oversættere \quad (3/4)}
+  \textbf{MLKit} {\scriptsize(\url{http://www.it-c.dk/research/mlkit})}
+  \begin{itemize}
+  \item Har en konfigurerbar spildopsamler.
+  \item Understøtter projektfiler (MLB).
+  \item Har ingen interaktiv fortolker.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Det praktiske: Oversættere \quad (4/4)}
+  \textbf{MLTon} {\scriptsize(\url{http://mlton.org})}
+  \begin{itemize}
+  \item Har mange ekstrabiblioteker.
+  \item Genererer meget hurtige programmer.
+  \item Er godt dokumenteret.
+  \item Understøtter projektfiler (MLB).
+  \item Oversætter enormt langsomt.
+  \item Har ingen interaktiv fortolker.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Det praktiske: Projektfiler \quad (1/2)}
+  \textbf{Compilation Manager}
+  {\scriptsize(\url{http://www.smlnj.org/doc/CM})}
+  \begin{itemize}
+  \item Mange avancerede funktioner.
+  \item Godt dokumenteret.
+  \item Kun brugt af SML of New Jersey.
+  \item Kan være svært at sætte sig ind i.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Det praktiske: Projektfiler \quad (2/2)}
+  \textbf{MLB: ML Basis}
+  {\scriptsize(\url{http://mlton.org/MLBasis},
+    \url{http://www.it-c.dk/research/mlkit/index.php/ML_Basis_Files})}
+  \begin{itemize}
+  \item Brugt af flere oversættere (MLTon, MLKit, \ldots).
+  \item Ikke så avanceret som CM.
+  \item Let at bruge og sætte sig ind i.
+  \end{itemize}
+  \begin{block}{\texttt{MyFaceTube.mlb}}
+    \lstinputlisting[language=c]{kode/persondatabase/MyFaceTube.mlb}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Det praktiske: Biblioteker \quad (1/4)}
+  \textbf{The Standard ML Basis Library}
+  {\scriptsize(\url{http://www.standardml.org/Basis})}
+  \begin{block}{}
+    SML's standard bibliotek. Lær det godt at kende!
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Det praktiske: Biblioteker \quad (2/4)}
+  \textbf{SMLServer}
+  {\scriptsize(\url{http://www.smlserver.org})}
+  \begin{block}{}
+    Web server plugin til Apache. Skriv websider med SML. Understøtter også ML
+    Server Pages.
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Det praktiske: Biblioteker \quad (3/4)}
+  \textbf{MyLib}
+  {\scriptsize(\url{http://www.github.com/mortenbp/mylib})}
+  \begin{block}{}
+    Generisk bibliotek udviklet af Jesper Reenberg og mig selv. Udvider
+    standardbiblioteket og implementerer forskellige datastrukturer og andre
+    nyttigheder. Er i øjeblikket ikke særligt godt dokumenteret, og ændres
+    jævnligt. Brug på eget ansvar!
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Det praktiske: Biblioteker \quad (4/4)}
+  \textbf{MLTon Lib}
+  {\scriptsize(\url{http://mlton.org/cgi-bin/viewsvn.cgi/mltonlib})}
+  \begin{block}{}
+    Udvidelse af standardbiblioteket samt adskillige selvindeholdte
+    biblioteker. Svært at gå til og indeholder mange vanvittigt avancerede
+    ting. Til gengæld er flere dele dokumenteret i videnskabelige
+    artikler. (Kig efter Vesa Karvonen.)
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Afrunding}
+
+  \begin{itemize}
+  \item Minimer nødvendigheden af (implicitte?) konventioner og invarianter
+    mellem adskilte dele af systemet.
+  \item Find frem til hvilke dele af systemet der har med repræsentation og
+    hvilke der har med manipulation at gøre.
+  \item Brug projektfiler.
+  \item Brug biblioteker (søg på Google --- man bliver overrasket over hvad folk
+    har lavet).
+  \item Brug en eller anden form for versionskontrol.
+  \item Vær ikke bange for at lave ting om (det kommer I alligevel til).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Afrunding: Litteratur \quad (1/4)}
+    Oversættere
+    \begin{itemize}
+    \item \textbf{MLTon}: (Anbefalet)\\
+      {\scriptsize\url{http://mlton.org}}
+    \item \textbf{SML of New Jersey}: (Anbefalet)\\
+      {\scriptsize\url{http://mlton.org}}
+    \item \textbf{Moscow ML}:\\
+      {\scriptsize\url{http://www.it-c.dk/research/mlkit}}
+    \item \textbf{MLKit}:\\
+      {\scriptsize\url{http://www.itu.dk/~sestoft/mosml.html}}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Afrunding: Litteratur \quad (2/4)}
+    Biblioteker
+    \begin{itemize}
+    \item \textbf{The Standard ML Basis Library}: (Anbefalet)\\
+      {\scriptsize\url{http://www.standardml.org/Basis}}
+    \item \textbf{SMLServer}:\\
+      {\scriptsize\url{http://www.smlserver.org}}
+    \item \textbf{MyLib}:\\
+      {\scriptsize\url{http://www.github.com/mortenbp/mylib}}
+    \item \textbf{MLTon Lib}:\\
+      {\scriptsize\url{http://mlton.org/cgi-bin/viewsvn.cgi/mltonlib}}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Afrunding: Litteratur \quad (3/4)}
+    Dokumentation
+    \begin{itemize}
+    \item \textbf{ML Basis}:\\
+      {\scriptsize\url{http://mlton.org/MLBasis},
+        \url{http://www.it-c.dk/research/mlkit/index.php/ML_Basis_Files}}
+    \item \textbf{Compilation Manager}:\\
+      {\scriptsize\url{http://www.smlnj.org/doc/CM}}
+    \item \textbf{MLLex}: (Lexer)\\
+      {\scriptsize\url{http://mlton.org/pages/Documentation/attachments/mllex.pdf}}
+    \item \textbf{MLYacc}: (Parser)\\
+      {\scriptsize\url{http://mlton.org/pages/Documentation/attachments/mlyacc.pdf}}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Afrunding: Litteratur \quad (4/4)}
+    Bøger
+    \begin{itemize}
+    \item \textbf{Purely Functional Data Structures}: (Anbefalet)\\
+      \textit{Chris Okasaki}, ISBN 978-0-521-63124-2
+    \item \textbf{Introduction to Programming Using SML}:\\
+      \textit{Michael R. Hansen} og \textit{Hans Rischel}, ISBN 0-201-39820
+    \item \textbf{ML For the Working Programmer}:\\
+      \textit{Lawrence C. Paulson}, ISBN 0-521-56543-X
+    \end{itemize}
+  \end{frame}
+
+\end{document}
+
+
+
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

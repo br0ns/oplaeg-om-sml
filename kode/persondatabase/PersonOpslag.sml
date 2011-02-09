@@ -1,0 +1,1 @@
+structure PersonOpslag = OrdnetOpslagFn (Person)
