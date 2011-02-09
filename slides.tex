@@ -83,7 +83,7 @@ escapeinside={(@}{@)}          % if you want to add a comment within your code
 
 
 \author[Morten Brøns-Pedersen]
-       {Morten Brøns-Pedersen}
+       {Morten Brøns-Pedersen {\tiny(f@ntast.dk)}}
 
 % Only write DIKU in the footer of slides (except the title slide).
 \institute[DIKU]{Datalogisk institut}
@@ -169,7 +169,7 @@ escapeinside={(@}{@)}          % if you want to add a comment within your code
 
   \begin{itemize}
   \item Personer.
-  \item Mængder (af personer)
+  \item Mængder (af personer).
   \item Opslag (fra personer til mængder af personer) --- Hvem er dine venner?
   \item Selve \mft.
   \end{itemize}
@@ -182,10 +182,12 @@ escapeinside={(@}{@)}          % if you want to add a comment within your code
   \begin{block}{}
     \lstinputlisting{kode/persondatabase/ORDNING.sig}
   \end{block}
-  Husk at \texttt{order} er defineret i standardbiblioteket:
-  \begin{block}{}
-    \lstinputlisting[numbers=none]{kode/til-slides/order.sml}
-  \end{block}
+  \only<2->{
+    Husk at \texttt{order} er defineret i standardbiblioteket:
+    \begin{block}{}
+      \lstinputlisting[numbers=none]{kode/til-slides/order.sml}
+    \end{block}
+  }
 \end{frame}
 
 \begin{frame}[fragile]
@@ -626,16 +628,25 @@ escapeinside={(@}{@)}          % if you want to add a comment within your code
 
 \begin{frame}
   \frametitle{Afrunding: Litteratur \quad (4/4)}
-    Bøger
-    \begin{itemize}
-    \item \textbf{Purely Functional Data Structures}: (Anbefalet)\\
-      \textit{Chris Okasaki}, ISBN 978-0-521-63124-2
-    \item \textbf{Introduction to Programming Using SML}:\\
-      \textit{Michael R. Hansen} og \textit{Hans Rischel}, ISBN 0-201-39820
-    \item \textbf{ML For the Working Programmer}:\\
-      \textit{Lawrence C. Paulson}, ISBN 0-521-56543-X
-    \end{itemize}
-  \end{frame}
+  Bøger
+  \begin{itemize}
+  \item \textbf{Purely Functional Data Structures}: (Anbefalet)\\
+    \textit{Chris Okasaki}, ISBN 978-0-521-63124-2
+  \item \textbf{Introduction to Programming Using SML}:\\
+    \textit{Michael R. Hansen} og \textit{Hans Rischel}, ISBN 0-201-39820
+  \item \textbf{ML For the Working Programmer}:\\
+    \textit{Lawrence C. Paulson}, ISBN 0-521-56543-X
+  \item \textbf{The Definition of Standard ML (Revised)}:\\
+    \textit{Robin Milner}, \textit{Mads Tofte}, \textit{Robert Harper} og
+    \textit{David MacQueen}, ISBN 0-262-63181-4
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[c]
+  \begin{center}
+    \Huge{KISS}
+  \end{center}
+\end{frame}
 
 \end{document}
 

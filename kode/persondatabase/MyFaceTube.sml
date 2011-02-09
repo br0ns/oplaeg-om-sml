@@ -1,7 +1,5 @@
 structure MyFaceTube :> MY_FACE_TUBE =
 struct
-type person = Person.t
-
 structure M = PersonMaengde
 structure O = PersonOpslag
 

@@ -1,15 +1,13 @@
 signature MY_FACE_TUBE =
 sig
-  type person = Person.t
-
-  val tilmeld : person -> unit
-  val afmeld : person -> unit
-  val medlem : person -> bool
+  val tilmeld : Person.t -> unit
+  val afmeld : Person.t -> unit
+  val medlem : Person.t -> bool
   val medlemmer : unit -> PersonMaengde.t
 
   (* Hvis ikke medlem returneres den tomme maengde *)
-  val venner : person -> PersonMaengde.t
+  val venner : Person.t -> PersonMaengde.t
 
   (* {nyVen a b} tilfoejer b til a's venner *)
-  val nyVen : person -> person -> unit
+  val nyVen : Person.t -> Person.t -> unit
 end
