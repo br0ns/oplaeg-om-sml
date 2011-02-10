@@ -1,8 +1,10 @@
 ;load "mft";
 
+local
+  structure M = PersonMaengde
+in
 fun wannabe p =
     let
-      structure M = PersonMaengde
       fun loop pr besoegte =
           let
             val (p, pr') = M.tagMindste pr
@@ -21,6 +23,7 @@ fun wannabe p =
       M.delmaengde venner medlemmer andalso
       M.delmaengde medlemmer venner
     end
+end
 
 val morten = Person.ny {navn = "Morten", cpr = 030586}
 val mikkel = Person.ny {navn = "Mikkel", cpr = 121089}
